@@ -1,11 +1,11 @@
 var app = require('../app'),
     assert = require('assert'),
     request = require('supertest'),
-    sinon = require('sinon');
-jsdom = require("jsdom");
+    sinon = require('sinon'),
+    jsdom = require('jsdom');
 
 
-describe('lirc_web', function() {
+describe('app', function() {
 
     describe('routes', function() {
 
@@ -57,7 +57,7 @@ describe('lirc_web', function() {
 
         // Sending macros
         it('should have POST route for sending a macro', function(done) {
-            assert(request(app).post('/macros/xbox_360').expect(200, done));
+            assert(request(app).post('/macros/Play%20Xbox%20360').expect(200, done));
         });
 
     });
