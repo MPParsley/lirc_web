@@ -200,6 +200,11 @@ app.post('/macros/:macro', function (req, res) {
   res.sendStatus(200);
 });
 
+// Apply socket, if any.
+if (config.server && config.server.socket) {
+  lircNode.irsend.setSocket(config.server.socket);
+}
+
 // Listen (http)
 if (config.server && config.server.port) {
   port = config.server.port;
