@@ -24,6 +24,14 @@ Verify the web interface works by opening ``http://SERVER:3000/`` in a web brows
 
 If you want to have `lirc_web`  available via port 80 and start on boot, there are example NGINX and Upstart configuration files included in the ``example_configs/`` directory.
 
+#### Mobile optimizations
+
+`lirc_web` includes performance and user experience optimizations for mobile devices. These can be enabled by adding the `lirc_web` URL as a bookmark to the home screen of your device. Bookmarking `lirc_web` is performed from your phone's web browser. `lirc_web` will then load full screen, as if it was a native iOS or Android app. The URL bar will no longer be visible and `lirc_web` will be selectable from the device's multitasking screen.
+
+Bookmarking is higly recommended for the best mobile experience.
+
+As of v0.3.0, `lirc_web` uses an Application Cache. The enables all assets to be cached locally on the phone. This reduces load time dramatically.
+
 ## Configuration
 
 As of v0.0.8, ``lirc_web`` supports customization through a configuration file.
@@ -36,11 +44,12 @@ You may place this configuration file in one of two locations and `lirc_web` wil
 These are the available configuration options:
 
 1. ``repeaters`` - buttons that repeatedly send their commands while pressed. A common example are the volume buttons on most remote controls. While you hold the volume buttons down, the remote will repeatedly send the volume command to your device.
-2. ``macros`` - a collection of commands that should be executed one after another. This allows you to automate actions like "Play Xbox 360" or "Listen to music via AirPlay". Each step in a macro is described in the format ``[ "REMOTE", "COMMAND" ]``, where ``REMOTE`` and ``COMMAND`` are defined by what you have programmed into LIRC. You can add delays between steps of macros in the format of ``[ "delay", 500 ]``. Note that the delay is measured in milliseconds so 1000 milliseconds = 1 second.
+2. ``macros`` - a collection of commands that should be executed one after another. This allows you to automate actions like "Play Xbox 360" or "Listen to music via AirPlay". Each step in a macro is described in the format ``[ "REMOTE", "COMMAND" ]``, where ``REMOTE`` and ``COMMAND`` are defined by what you have programmed into LIRC. You can add delays between steps of macros in the format of ``[ "delay", 500 ]``. Note that the delay is measured in milliseconds so 1000 milliseconds = 1 second.  You can also add a repeater macro with a delay by using the format ``[ "REMOTE", ["COMMAND", delay]]`` in place of a normal``COMMAND`` (Refer to Xbox Off command below). 
 3. ``commandLabels`` - a way to rename commands that LIRC understands (``KEY_POWER``, ``KEY_VOLUMEUP``) with labels that humans prefer (``Power``, ``Volume Up``).
 4. ``remoteLabels`` - a way to rename the remotes that LIRC understands (``XBOX360``) with labels that humans prefer (``Xbox 360``).
 5. ``blacklists`` - a way to hide unused commands from your remotes.
 6. ``server`` - server configuration settings (ports, [SSL](http://serverfault.com/a/366374)).
+7. ``socket`` - to specify the lircd socket for irsend.
 
 
 #### Example config.json:
@@ -74,7 +83,13 @@ These are the available configuration options:
           [ "Yamaha", "Power" ],
           [ "delay", 500 ],
           [ "Yamaha", "AirPlay" ]
-        ]
+        ],
+        "Xbox Off": [
+          [ "XboxOne", [ "Power", "1600" ] ],
+          [ "delay", "1010" ],
+          [ "XboxOne", "Up" ],
+          [ "XboxOne", "Select" ]
+        ],
       },
       "commandLabels": {
         "Yamaha": {
@@ -86,13 +101,14 @@ These are the available configuration options:
       },
       "remoteLabels": {
          "Xbox360": "Xbox 360"
-      }
+      },
       "blacklists": {
          "Yamaha": [
            "AUX2",
            "AUX3"
          ]
-      }
+      },
+      "socket": "/run/lirc/lircd1"
     }
 
 Please see the `example_configs/` directory.
@@ -142,19 +158,32 @@ You can run the test suite by running:
 npm test
 ```
 
+If you develop test driven, you may want to launch a continuous test which automatically restarts when server or tests are modified:
+
+```
+npm run test:watch
+```
+
 You can run the linter to confirm JS conforms to standards by running:
 
 ```
 npm run lint-js
 ```
 
+You can also run the linter continuously via grunt:
+```
+grunt watch
+```
+
+
 ## Contributing
 
 Before you submit a pull request with your change, please be sure to:
 
-* Add new tests that prove your change works as expected.
-* Ensure all existing tests are still passing.
-* Run the linter to ensure your code conforms to JS standards
+* Add new tests that prove your change works as expected
+* Ensure all existing tests are still passing
+* Run the linter to ensure your code conforms to the js styleguide
+* Update CHANGELOG.md file ('Unreleased' section) with concise bullet points
 
 Once you're sure everything is still working, open a pull request with a clear
 description of what you changed and why. I will not accept a pull request which
@@ -179,4 +208,3 @@ the following conditions:
 
 The above copyright notice and this permission notice shall be
 included in all copies or substantial portions of the Software.
-

@@ -6,6 +6,29 @@ As of `v0.1.0`, this project adheres to [Semantic Versioning](http://semver.org/
 
 ## Unreleased
 
+* Adds ability to "hold" buttons in Macros (thanks @apocolipse)
+
+## [0.3.1] - 2016-05-01
+
+* Replace third party Lato font w/ system fonts. Improves load time.
+* Adds an offline message shown when the client can't contact server
+
+## [0.3.0] - 2016-03-13
+
+* Adds `grunt-contrib-cssmin` task to combine all CSS requests into one
+* Adds ability to set lirc socket in `config.json` (thanks @pmgration)
+* Base64 `left-arrow.png` image to reduce a request
+* Adds application cache manifest file for offline caching
+
+## [0.2.4] - 2016-01-13
+
+* Extracts macros into a standalone lib/macros.js file
+* Adds Favicon (thanks @flochtililoch)
+* Adds npm run test:watch action (thanks @OvisMaximus)
+* Travis build will now run linter
+* Updated dependencies
+* Uses local version of jQuery for testing now
+
 ## [0.2.3] - 2016-01-03
 
 * Fixing bug where labels were loaded before config (thanks @flochtililoch)

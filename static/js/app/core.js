@@ -112,5 +112,23 @@ $(function() {
     // Remove 300ms delay after tapping
     OSUR.fastClick = new FastClick(document.body);
 
-});
+    // If the appcache file has updated, reload the page automatically
+    function onUpdateReady() {
+        document.location.reload();
+    }
 
+    window.applicationCache.addEventListener('updateready', onUpdateReady);
+
+    if(window.applicationCache.status === window.applicationCache.UPDATEREADY) {
+        onUpdateReady();
+    }
+
+    $.ajax({
+      url: '/remotes.json',
+      timeout: 1500,
+      error: function (e) {
+        $('body').addClass('offline');
+      }
+    });
+
+});

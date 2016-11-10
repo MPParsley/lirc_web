@@ -2,19 +2,24 @@
 
 // Requirements
 var express = require('express');
-var logger = require('morgan')
-var compress = require('compression')
+var logger = require('morgan');
+var compress = require('compression');
 var lircNode = require('lirc_node');
 var consolidate = require('consolidate');
 var swig = require('swig');
 var labels = require('./lib/labels');
 var https = require('https');
 var fs = require('fs');
+var macros = require('./lib/macros');
 
 // Precompile templates
 var JST = {
   index: swig.compileFile(__dirname + '/templates/index.swig'),
+  appcache: swig.compileFile(__dirname + '/templates/appcache.swig'),
 };
+
+// Set bootup time as the cache busting hash for the app cache manifest
+var bootupTime = Date.now();
 
 // Create app
 var app = module.exports = express();
@@ -28,6 +33,8 @@ var sslOptions = {
   key: null,
   cert: null,
 };
+
+var labelFor = {};
 
 // App configuration
 app.engine('.html', consolidate.swig);
@@ -53,6 +60,13 @@ function _init() {
     console.log('DEBUG:', e);
     console.log('WARNING: Cannot find config.json!');
   }
+
+  if (config.socket) {
+    lircNode.setSocket(config.socket);
+  }
+
+  // Refresh the app cache manifest hash
+  bootupTime = Date.now();
 }
 
 function refineRemotes(myRemotes) {
@@ -95,8 +109,8 @@ if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
   _init();
 }
 
-// Labels for remotes / commands
-var labelFor = labels(config.remoteLabels, config.commandLabels);
+// initialize Labels for remotes / commands
+labelFor = labels(config.remoteLabels, config.commandLabels);
 
 // Routes
 
@@ -109,6 +123,13 @@ app.get('/', function (req, res) {
     repeaters: config.repeaters,
     labelForRemote: labelFor.remote,
     labelForCommand: labelFor.command,
+  }));
+});
+
+// application cache manifest
+app.get('/app.appcache', function (req, res) {
+  res.send(JST.appcache({
+    hash: bootupTime,
   }));
 });
 
@@ -170,42 +191,26 @@ app.post('/remotes/:remote/:command/send_stop', function (req, res) {
 
 // Execute a macro (a collection of commands to one or more remotes)
 app.post('/macros/:macro', function (req, res) {
-  var i = 0;
-  var nextCommand = null;
-
-  // If the macro exists, execute each command in the macro with 100msec
-  // delay between each command.
+  // If the macro exists, execute it
   if (config.macros && config.macros[req.params.macro]) {
-    nextCommand = function () {
-      var command = config.macros[req.params.macro][i];
-
-      if (!command) { return true; }
-
-      // increment
-      i = i + 1;
-
-      if (command[0] === 'delay') {
-        setTimeout(nextCommand, command[1]);
-      } else {
-        // By default, wait 100msec before calling next command
-        lircNode.irsend.send_once(command[0], command[1], function () { setTimeout(nextCommand, 100); });
-      }
-    };
-
-    // kick off macro w/ first command
-    nextCommand();
+    macros.exec(config.macros[req.params.macro], lircNode);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendStatus(200);
+  } else {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendStatus(404);
   }
-
-  res.setHeader('Cache-Control', 'no-cache');
-  res.sendStatus(200);
 });
 
 // Listen (http)
 if (config.server && config.server.port) {
   port = config.server.port;
 }
-app.listen(port);
-console.log('Open Source Universal Remote UI + API has started on port ' + port + ' (http).');
+// only start server, when called as application
+if (!module.parent) {
+  app.listen(port);
+  console.log('Open Source Universal Remote UI + API has started on port ' + port + ' (http).');
+}
 
 // Listen (https)
 if (config.server && config.server.ssl && config.server.ssl_cert && config.server.ssl_key && config.server.ssl_port) {

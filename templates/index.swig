@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html manifest="app.appcache">
   <head>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -9,16 +9,16 @@
     <meta name="viewport" content="width=device-width">
     <meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0">
     <title>Universal Remote</title>
-    <link rel="stylesheet" href="css/bootstrap.css" />
-    <link rel="stylesheet" href="css/flat-ui.css" />
-    <link rel="stylesheet" href="css/compiled/app.css" />
+    <link rel="stylesheet" href="css/compiled/compiled.css" />
+    {% include "./favicons.swig" %}
   </head>
   <body ontouchstart="">
     <div id="container">
       <h1 id="titlebar">
-        <a class="back hidden"><img src="images/left-arrow.png" height="40" width="40" /></a>
+        <a class="back hidden"><div class="left-arrow"></div></a>
         <span id="title" data-text="Universal Remote">Universal Remote</span>
       </h1>
+      <p class="offline-message">You are currently offline. <a id="offline-retry" href="/">Retry?</a></p>
       <ul class="remotes-nav">
       {% for remote in remotes %}
         {% set remoteName = loop.key %}
@@ -59,6 +59,7 @@
     <footer>
 	    <p><a href="/refresh">Refresh</a></p>
       <p><a href="http://opensourceuniversalremote.com/">Powered by Open Source Universal Remote</a></p>
+      <p><a href="http://thenounproject.com/noun/remote-control/#icon-No10870">Remote Control</a> designed by <a href="http://thenounproject.com/esteves_emerick">Adriano Emerick</a> from The Noun Project</p>
     </footer>
 
     <script src="js/compiled/app.js" type="text/javascript" charset="utf-8"></script>
